@@ -1,0 +1,42 @@
+#Instalar strongSwan
+apt-get install strongswan
+
+#Editar el archivo de configuración /etc/ipsec.conf
+nano /etc/ipsec.conf
+
+conn AZURE
+   authby=secret
+   auto=start
+   type=tunnel
+   keyexchange=ikev2
+   keylife=3600s
+   ikelifetime=28800s
+   # Red local
+   leftid=[LocalIPLocalGW]
+   left= [PublicIPLocalGW]
+   leftsubnet=[LocalNetworkAddress/Mask]
+   # Red Azure
+   rightid = [PublicIPAzureGW]
+   right = [PublicIPAzureGW]
+   rightsubnet= [AzureNetworkAddress/Mask]
+   # Cifrado
+   ike=aes256-sha1-modp1024
+   esp=aes256-sha1
+
+#Editar el archivo de configuración /etc/ipsec.secrets
+nano /etc/ipsec.secrets
+
+[PublicIPLocalGW] [PublicIPAzureGW]: PSK "SharedKey"
+
+#Configurar y activar reenvío de paquetes
+echo "1" > /proc/sys/net/ipv4/ip_forward
+
+nano /etc/sysctl.conf
+
+#quitar comentario de net.ipv4.ip_forward=1
+
+#Reiniciar IPSec
+ipsec restart
+
+#Comprobar estado
+ipsec statusall
